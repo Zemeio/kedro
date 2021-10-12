@@ -129,8 +129,17 @@ class _FrozenDatasets:
     def __init__(self, datasets):
         # Non-word characters in dataset names are replaced with `__`
         # for easy access to transcoded/prefixed datasets.
-        datasets = {_sub_nonword_chars(key): value for key, value in datasets.items()}
-        self.__dict__.update(**datasets)
+        self._dataset = datasets
+        self._is_initialized = False
+
+    def __getitem__(self, key: str) -> AbstractDataSet:
+        if not self._is_initialized:
+            datasets = {
+                _sub_nonword_chars(key): value for key, value in self._datasets.items()
+            }
+            self.__dict__.update(**datasets)
+            self._is_initialized = True
+        return self.__dict__[key]
 
     # Don't allow users to add/change attributes on the fly
     def __setattr__(self, key, value):
